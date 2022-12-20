@@ -27,8 +27,7 @@ class LogisticRegression(nn.Module):
         https://pytorch.org/docs/stable/nn.html
         """
         super(LogisticRegression, self).__init__()
-        self.layer = nn.Linear(n_features, n_classes)
-        self.activation = nn.Sigmoid()
+        self.linear = nn.Linear(n_features, n_classes)
 
     def forward(self, x, **kwargs):
         """
@@ -44,9 +43,8 @@ class LogisticRegression(nn.Module):
         forward pass -- this is enough for it to figure out how to do the
         backward pass.
         """
-        x = self.layer(x)
-        x = self.activation(x)
-        return x
+        outputs = self.linear(x)
+        return outputs
 
 
 # Q2.2
