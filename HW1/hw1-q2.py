@@ -27,7 +27,7 @@ class LogisticRegression(nn.Module):
         https://pytorch.org/docs/stable/nn.html
         """
         super(LogisticRegression, self).__init__()
-        self.layer = nn.Linear(n_features, n_classes)
+        self.model = nn.Linear(n_features, n_classes)
 
     def forward(self, x, **kwargs):
         """
@@ -43,8 +43,7 @@ class LogisticRegression(nn.Module):
         forward pass -- this is enough for it to figure out how to do the
         backward pass.
         """
-        x = self.layer(x)
-        return x
+        return self.model(x)
 
 
 # Q2.2
@@ -67,23 +66,21 @@ class FeedforwardNetwork(nn.Module):
         super(FeedforwardNetwork, self).__init__()
         assert(layers > 0)
         self.layers = layers + 2
-
-        fc = []
+        model = []
         for i in range(self.layers - 1):
             if i == 0:
-                fc.append(nn.Linear(n_features, hidden_size))
-            elif i == self.layers - 2:
-                fc.append(nn.Linear(hidden_size, n_classes))
+                model.append(nn.Linear(n_features, hidden_size))
+            elif i < self.layers - 2:
+                model.append(nn.Linear(hidden_size, hidden_size))
             else:
-                fc.append(nn.Linear(hidden_size, hidden_size))
-        self.fc =  nn.ModuleList(fc)
-
-        if activation_type == "relu":
-            self.activation = nn.ReLU()
-        elif activation_type == "tanh":
-            self.activation = nn.Tanh()
-
-        self.dropout = nn.Dropout(dropout)
+                model.append(nn.Linear(hidden_size, n_classes))
+                break
+            if activation_type == "relu":
+                    model.append(nn.ReLU())
+            elif activation_type == "tanh":
+                model.append(nn.Tanh())
+            model.append(nn.Dropout(dropout)) # dropout after activation
+        self.model = nn.Sequential(*model)
 
     def forward(self, x, **kwargs):
         """
@@ -93,14 +90,7 @@ class FeedforwardNetwork(nn.Module):
         the output logits from x. This will include using various hidden
         layers, pointwise nonlinear functions, and dropout.
         """
-        x_out = x
-        for i in range(self.layers - 1):
-            if i != 0:
-                x_out = self.dropout(x_out)
-            x_out = self.fc[i](x_out)
-            if i != self.layers - 2:
-                x_out = self.activation(x_out)
-        return x_out
+        return self.model(x)
 
 
 def train_batch(X, y, model, optimizer, criterion, **kwargs):
@@ -167,7 +157,7 @@ def main():
     parser.add_argument('-epochs', default=20, type=int,
                         help="""Number of epochs to train for. You should not
                         need to change this value for your plots.""")
-    parser.add_argument('-batch_size', default=1, type=int,
+    parser.add_argument('-batch_size', default=16, type=int,
                         help="Size of training batch.")
     parser.add_argument('-learning_rate', type=float, default=0.01)
     parser.add_argument('-l2_decay', type=float, default=0)
