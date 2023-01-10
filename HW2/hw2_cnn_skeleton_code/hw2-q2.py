@@ -18,54 +18,110 @@ import utils
 class CNN(nn.Module):
     
     def __init__(self, dropout_prob):
-        """
-        The __init__ should be used to declare what kind of layers and other
-        parameters the module has. For example, a CNN module has convolution,
-        max pooling, activation, linear, and other types of layers. For an 
-        idea of how to us pytorch for this have a look at
-        https://pytorch.org/docs/stable/nn.html
-        """
         super(CNN, self).__init__()
+        # Batch size = batchSize, images 28x28 => x.shape = [batchSize, 1, 28, 28]
         
-        # Implement me!
+        #Calculate output size of convolution given same input height and width:
+        #source: https://iq.opengenus.org/output-size-of-convolution/
+        
+        #outputHeight = (inputHeight + paddingHeightTop + paddingHeightBot - kernelHeight) / (strideHeight) + 1
+        
+        #the following assumptions are made since input's height = input's width
+        #paddingHeightTop = paddingHeightBot = padding and
+        #kernelHeight = kernelWidth = kernel and
+        #strideHeight = strideWidth = stride hence,
+        
+        #outputHeight = (inputHeight + 2 x padding - kernel) / (stride) + 1
+        
+        #for inputHeight = 28, kernel = 5, stride = 1 and expected outputHeight = 28, padding should be 2
+        
+        self.conv1 = nn.Conv2d(in_channels = 1, out_channels = 8, kernel_size=5, padding = 2, stride = 1)
+        
+        #x.shape = [batchSize, 8, 28, 28]
+        
+        self.maxpool1 = nn.MaxPool2d(2, stride = 2)
+        
+        #outputHeight = (28 - 2)/2 + 1 = 14 => x.shape = [batchSize, 8, 14, 14]
+        
+        self.conv2 = nn.Conv2d(in_channels = 8, out_channels = 16, kernel_size=3, padding = 0, stride = 1)
+        
+        #outputHeight = 14 - 3 + 1 = 12 => x.shape = [batchSize, 16, 12, 12]
+        
+        self.maxpool2 = nn.MaxPool2d(2, stride = 2)
+        
+        #outputHeight = (12 - 2)/2 + 1 = 6 => x.shape = [batchSize, 16, 6, 6] 
+        
+        self.conv_drop = nn.Dropout2d(p = dropout_prob)
+        
+        #number of input features = number of ouput channels x output width x output height = 16 * 6 * 6 = 576
+        
+        self.fc1 = nn.Linear(576, 600)
+        self.fc2 = nn.Linear(600, 120)
+        self.fc3 = nn.Linear(120, 10)
+        
         
     def forward(self, x):
-        """
-        x (batch_size x n_channels x height x width): a batch of training 
-        examples
+        
+        x = x.view(-1, 1, 28, 28)
+                
+        #The following x transformations are according to the given order of the assignment guidelines of exercise 2.4.:
+        #"A rectified linear unit activation function."
+        x = F.relu(self.conv1(x))
+        
+        #"A max pooling with kernel size 2x2 and stride of 2."
+        x = self.maxpool1(x)
+               
+        #"A rectified linear unit activation function."
+        x = F.relu(self.conv2(x))
+        
+        #"A max pooling with kernel size 2x2 and stride of 2."
+        x = self.maxpool2(x)
 
-        Every subclass of nn.Module needs to have a forward() method. forward()
-        describes how the module computes the forward pass. This method needs 
-        to perform all the computation needed to compute the output from x. 
-        This will include using various hidden layers, pointwise nonlinear 
-        functions, and dropout. Don't forget to use logsoftmax function before 
-        the return
+        # Reshape => x.shape = [batchSize, 576]
+        x = x.view(-1, 576)
+        
+        #"An affine transformation with 600 output features (...) A rectified linear unit activation function."
+        x = self.fc1(x)
+        x = F.relu(x)
+        
+        #"A dropout layer wit a dropout probability of 0.3."
+        x = self.conv_drop(x)
+        
+        #"An affine transformation with 120 output features (...) A rectified linear unit activation function."
+        x = self.fc2(x)
+        x = F.relu(x)
+        
+        #"An affine transformation with the number of classes followed by an output LogSoftmax layer."
+        x = self.fc3(x)
+        x = F.log_softmax(x, dim=1)
+        
+        #missing view transofrmation for output?
+        
+        return x
 
-        One nice thing about pytorch is that you only need to define the
-        forward pass -- this is enough for it to figure out how to do the
-        backward pass.
-        """
-        raise NotImplementedError
 
 def train_batch(X, y, model, optimizer, criterion, **kwargs):
-    """
-    X (n_examples x n_features)
-    y (n_examples): gold labels
-    model: a PyTorch defined model
-    optimizer: optimizer used in gradient step
-    criterion: loss function
+        
+    model.train()
 
-    To train a batch, the model needs to predict outputs for X, compute the
-    loss between these predictions and the "gold" labels y using the criterion,
-    and compute the gradient of the loss with respect to the model parameters.
+    inputs = X
+    labels = y
+    
+    # Zero your gradients for every batch!
+    optimizer.zero_grad()
 
-    Check out https://pytorch.org/docs/stable/optim.html for examples of how
-    to use an optimizer object to update the parameters.
+    with torch.set_grad_enabled(True):
+        # Make predictions for this batch
+        outputs = model(inputs)
+        # Compute the loss and its gradients
+        loss = criterion(outputs, labels)
 
-    This function should return the loss (tip: call loss.item()) to get the
-    loss as a numerical value that is not part of the computation graph.
-    """
-    raise NotImplementedError
+    # always in training phase, perform backward prop and optimize
+    loss.backward()
+    optimizer.step()
+
+    return loss.item()
+
 
 def predict(model, X):
     """X (n_examples x n_features)"""
@@ -147,7 +203,7 @@ def main():
         dataset, batch_size=opt.batch_size, shuffle=True)
     dev_X, dev_y = dataset.dev_X, dataset.dev_y
     test_X, test_y = dataset.test_X, dataset.test_y
-
+    
     # initialize the model
     model = CNN(opt.dropout)
     
