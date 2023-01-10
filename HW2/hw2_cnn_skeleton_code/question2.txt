@@ -1,0 +1,28 @@
+2.1. A convolutional neural network (CNN) typically has fewer free parameters than a fully-connected network with the same input size and number of classes because it utilizes a technique called parameter sharing.
+
+In a fully-connected network, each neuron in a particular layer is connected to every neuron in the previous layer, and each of these connections has its own weight. This means that the number of weights in the network is equal to the product of the number of neurons in the previous layer and the number of neurons in the current layer.
+
+In contrast, a CNN uses convolutional layers, which involve applying a set of filters to the input, where each filter corresponds to a set of weights. These filters are then moved across the input, performing the dot product of the weights with the input at each location. Because the same set of weights is used at each location, the number of weights is much smaller.
+Additionally, the use of pooling layers in CNN also reduces the number of parameters. Pooling layer performs down-sampling operation over the feature maps, reducing the dimensionality and also helps to reduce overfitting by reducing the number of parameters.
+
+Therefore, because of the use of parameter sharing and pooling layers, CNNs are able to achieve similar classification performance with significantly fewer free parameters than fully-connected networks with the same input size and number of classes.
+
+2.2.Yes, a CNN typically achieves better generalization on images and patterns representing letters and numbers than a fully-connected network because it is designed to take advantage of the spatial structure of the data.
+
+In the case of images, a fully-connected network would treat each pixel independently, without considering the relationship between the pixels. This would make it difficult for the network to learn features that are useful for classifying the image, because the features would likely be spread out across many neurons in the network.
+
+In contrast, a CNN uses convolutional layers, which are designed to automatically learn spatial hierarchies of features. The filters in these layers are able to detect local patterns in the image, such as edges or textures. These features are then passed to the next layer, where more complex features are learned by combining the simpler features detected in the previous layer. Through this process, the CNN is able to learn features that are useful for classifying the image.
+
+Additionally, the pooling layers in a CNN are used to down-sample the feature maps, which helps to reduce the amount of spatial information that needs to be processed by the network. By doing so, the pooling layers make it easier for the network to learn translations, scaling, rotation and other kind of variantion invariances of the image. So, a CNN can generalize well to new images that are translated, scaled, rotated and distorted versions of the training images.
+
+In summary, the architecture of CNNs, with convolutional and pooling layers, allows them to automatically learn spatial hierarchies of features, which is why they typically achieve better generalization on images and patterns than fully-connected networks.
+
+2.3 If the input is from a source composed of independent sensors that have no spatial structure, a CNN may not be the best choice for achieving good generalization.
+
+The key strength of CNNs is the ability to take advantage of the spatial structure of the data, as the convolutional layers are designed to learn features from local patterns in the input. However, if the input is composed of independent sensors, there is no inherent spatial structure in the data, and therefore the convolutional layers may not be able to learn useful features.
+
+In such a scenario, a fully-connected network would likely be a better choice, because it is not constrained by the assumption of spatial structure in the data. Each neuron in a fully-connected network is connected to every neuron in the previous layer, allowing the network to learn any kind of relationship between the inputs, regardless of whether there is a spatial structure or not.
+
+However, it's worth noting that, even if there is no spatial structure to the input, a CNN still can be beneficial in certain scenarios depending on the characteristics of the data. For example, if the input is time series data, we can use a 1D CNN, or in audio data we can use 2D CNN by using time as one dimension and frequency as another dimension.
+
+In summary, If the input is from a source composed of independent sensors that have no spatial structure, a CNN may not be the best choice for achieving good generalization, but it depends on the characteristics of the data and the problem. A fully-connected network is more general and can handle any kind of input without making assumptions about the structure of the data.
