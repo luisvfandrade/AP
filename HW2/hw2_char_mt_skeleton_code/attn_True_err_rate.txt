@@ -1,0 +1,11 @@
+true src: "venios ."
+true tgt: "come with us ."
+pred tgt: "come well us ."
+true src: "lo prometiste ."
+true tgt: "you promised ."
+pred tgt: "you promised ."
+true src: "no tengo blanca ."
+true tgt: "i m broke ."
+pred tgt: "i have no bad ."
+Final validation error rate: 0.3437
+Test error rate: 0.3548

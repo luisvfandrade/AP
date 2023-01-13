@@ -47,13 +47,18 @@ class Attention(nn.Module):
         # - Use torch.tanh to do the tanh
         # - Use torch.masked_fill to do the masking of the padding tokens
         #############################################
-        raise NotImplementedError
+        score = torch.bmm(self.linear_in(query), encoder_outputs.transpose(1, 2))
+        score = score.masked_fill(src_seq_mask.unsqueeze(1), float("-inf"))
+        weights = torch.softmax(score, dim = 2)
+        context = torch.bmm(weights, encoder_outputs)
+        attn = self.linear_out(torch.cat([query, context], dim = 2))
+        attn_out = torch.tanh(attn)
         #############################################
         # END OF YOUR CODE
         #############################################
         # attn_out: (batch_size, 1, hidden_size)
         # TODO: Uncomment the following line when you implement the forward pass
-        # return attn_out
+        return attn_out
 
     def sequence_mask(self, lengths):
         """
@@ -109,7 +114,11 @@ class Encoder(nn.Module):
         # - Use torch.nn.utils.rnn.pad_packed_sequence to unpack the packed sequences
         #   (after passing them to the LSTM)
         #############################################
-        raise NotImplementedError
+        emb = self.embedding(src)
+        lengths, perm_idx = lengths.sort(0, descending = True)
+        packed_input = pack(emb, lengths, batch_first = True)
+        packed_output, final_hidden = self.lstm(packed_input)
+        enc_output, input_sizes = unpack(packed_output, batch_first = True)
         #############################################
         # END OF YOUR CODE
         #############################################
@@ -117,7 +126,7 @@ class Encoder(nn.Module):
         # final_hidden: tuple with 2 tensors
         # each tensor is (num_layers * num_directions, batch_size, hidden_size)
         # TODO: Uncomment the following line when you implement the forward pass
-        # return enc_output, final_hidden
+        return enc_output, final_hidden
 
 
 class Decoder(nn.Module):
@@ -179,8 +188,15 @@ class Decoder(nn.Module):
         #         encoder_outputs,
         #         src_lengths,
         #     )
-        #############################################
-        raise NotImplementedError
+        ############################################# 
+        if (tgt.size(1) > 1):
+            emb = self.embedding(tgt[:, :-1])
+        else:
+            emb = self.embedding(tgt)
+        emb = self.dropout(emb)
+        outputs, dec_state = self.lstm(emb, dec_state)
+        if self.attn is not None:
+            outputs = self.attn(outputs, encoder_outputs, src_lengths,)
         #############################################
         # END OF YOUR CODE
         #############################################
@@ -188,7 +204,7 @@ class Decoder(nn.Module):
         # dec_state: tuple with 2 tensors
         # each tensor is (num_layers, batch_size, hidden_size)
         # TODO: Uncomment the following line when you implement the forward pass
-        # return outputs, dec_state
+        return outputs, dec_state
 
 
 class Seq2Seq(nn.Module):
