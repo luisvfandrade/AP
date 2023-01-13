@@ -51,12 +51,14 @@ class CNN(nn.Module):
         
         #outputHeight = (12 - 2)/2 + 1 = 6 => x.shape = [batchSize, 16, 6, 6] 
         
-        self.conv_drop = nn.Dropout2d(p = dropout_prob)
-        
         #number of input features = number of ouput channels x output width x output height = 16 * 6 * 6 = 576
         
         self.fc1 = nn.Linear(576, 600)
+        
+        self.conv_drop = nn.Dropout(p = dropout_prob)
+        
         self.fc2 = nn.Linear(600, 120)
+        
         self.fc3 = nn.Linear(120, 10)
         
         
