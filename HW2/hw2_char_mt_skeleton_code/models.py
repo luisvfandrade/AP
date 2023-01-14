@@ -115,10 +115,12 @@ class Encoder(nn.Module):
         #   (after passing them to the LSTM)
         #############################################
         emb = self.embedding(src)
-        lengths, perm_idx = lengths.sort(0, descending = True)
+        emb = self.dropout(emb)
+        lengths, _ = lengths.sort(0, descending = True)
         packed_input = pack(emb, lengths, batch_first = True)
         packed_output, final_hidden = self.lstm(packed_input)
-        enc_output, input_sizes = unpack(packed_output, batch_first = True)
+        enc_output, _ = unpack(packed_output, batch_first = True)
+        enc_output = self.dropout(enc_output)
         #############################################
         # END OF YOUR CODE
         #############################################
@@ -195,6 +197,7 @@ class Decoder(nn.Module):
             emb = self.embedding(tgt)
         emb = self.dropout(emb)
         outputs, dec_state = self.lstm(emb, dec_state)
+        outputs = self.dropout(outputs)
         if self.attn is not None:
             outputs = self.attn(outputs, encoder_outputs, src_lengths,)
         #############################################

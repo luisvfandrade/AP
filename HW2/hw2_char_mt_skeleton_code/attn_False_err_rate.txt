@@ -1,12 +1,11 @@
-Test Error Rate of the model: 0.4888
 true src: "venios ."
 true tgt: "come with us ."
-pred tgt: "come on in ."
+pred tgt: "come on there ."
 true src: "lo prometiste ."
 true tgt: "you promised ."
 pred tgt: "you promised ."
 true src: "no tengo blanca ."
 true tgt: "i m broke ."
-pred tgt: "i have no money ."
-Final validation error rate: 0.4970
-Test error rate: 0.4888
+pred tgt: "i have no fain ."
+Final validation error rate: 0.5235
+Test error rate: 0.5288
